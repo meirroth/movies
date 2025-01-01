@@ -6,7 +6,7 @@
       class="w-full lg:w-2/5 h-auto object-cover object-center rounded-lg shadow-lg"
     />
     <div class="mt-5 lg:mt-0 lg:flex-1">
-      <h1 class="text-3xl font-bold text-gray-200">{{ movie.title }}</h1>
+      <h1 class="text-3xl font-bold text-gray-400">{{ movie.title }}</h1>
       <div class="flex items-center justify-between mt-2">
         <p class="text-sm text-gray-400">
           {{ formatDate(movie.release_date) }}
@@ -19,7 +19,7 @@
           {{ formatRating(movie.vote_average) }}
         </p>
       </div>
-      <p class="mt-4 text-gray-300">{{ movie.overview }}</p>
+      <p class="mt-4 text-gray-400">{{ movie.overview }}</p>
       <RelatedMovies class="mt-10" :movieId="movie.id" />
     </div>
   </div>
