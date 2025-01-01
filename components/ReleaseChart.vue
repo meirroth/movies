@@ -14,6 +14,7 @@ import {
   LineController,
   Title,
   Tooltip,
+  Filler,
 } from "chart.js";
 
 Chart.register(
@@ -23,7 +24,8 @@ Chart.register(
   LineElement,
   LineController,
   Title,
-  Tooltip
+  Tooltip,
+  Filler
 );
 
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
