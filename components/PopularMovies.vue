@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { useInfiniteScroll } from "@vueuse/core";
 
-const store = useMoviesStore();
+const store = useMovieStore();
 const scrollContainer = ref<HTMLElement>();
 
 const movies = computed(() => store.movies);

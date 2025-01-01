@@ -1,6 +1,7 @@
-import type { Movie, MovieResponse } from "~/types/movies";
+import type { Movie, MovieResponse } from "~/types/movie";
 
-interface MoviesState {
+interface StoreState {
+  movie: Movie | null;
   movies: Movie[];
   currentPage: number;
   totalPages: number;
@@ -9,8 +10,9 @@ interface MoviesState {
   hasMore: boolean;
 }
 
-export const useMoviesStore = defineStore("moviesStore", {
-  state: (): MoviesState => ({
+export const useMovieStore = defineStore("movieStore", {
+  state: (): StoreState => ({
+    movie: null,
     movies: [],
     currentPage: 0,
     totalPages: 0,
@@ -68,13 +70,28 @@ export const useMoviesStore = defineStore("moviesStore", {
       }
     },
 
-    resetStore() {
-      this.movies = [];
-      this.currentPage = 0;
-      this.totalPages = 0;
-      this.isLoading = false;
-      this.error = null;
-      this.hasMore = true;
+    async loadMovieDetails(movieId: number) {
+      const { tmdbApiKey, tmdbApiUrl } = useRuntimeConfig().public;
+
+      try {
+        this.isLoading = true;
+        this.error = null;
+
+        const response = await $fetch<Movie>(`${tmdbApiUrl}/movie/${movieId}`, {
+          params: {
+            language: "en-US",
+          },
+          headers: {
+            Authorization: `Bearer ${tmdbApiKey}`,
+          },
+        });
+
+        this.movie = response;
+      } catch (error) {
+        this.error =
+          error instanceof Error ? error.message : "Failed to fetch movie";
+        console.error("Error fetching movie:", error);
+      }
     },
   },
 });
