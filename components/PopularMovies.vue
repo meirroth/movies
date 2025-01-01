@@ -16,8 +16,8 @@ const store = useMovieStore();
 const scrollContainer = ref<HTMLElement>();
 
 const movies = computed(() => store.movies);
-const isLoading = computed(() => store.isLoading);
-const canLoadMore = computed(() => store.canLoadMore);
+const isLoading = computed(() => store.moviesLoading);
+const canLoadMoreMovies = computed(() => store.canLoadMoreMovies);
 
 await callOnce(async () => {
   await store.fetchPopularMovies();
@@ -26,7 +26,7 @@ await callOnce(async () => {
 useInfiniteScroll(
   scrollContainer,
   async () => {
-    if (canLoadMore.value) {
+    if (canLoadMoreMovies.value) {
       await store.loadMoreMovies();
     }
   },

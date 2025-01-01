@@ -2,27 +2,37 @@ import type { Movie, MovieResponse } from "~/types/movie";
 
 interface StoreState {
   movie: Movie | null;
+  movieLoading: boolean;
+  movieError: string | null;
   movies: Movie[];
-  currentPage: number;
-  totalPages: number;
-  isLoading: boolean;
-  error: string | null;
-  hasMore: boolean;
+  moviesLoading: boolean;
+  moviesError: string | null;
+  moviesCurrentPage: number;
+  moviesTotalPages: number;
+  moviesHasMore: boolean;
+  releases: Movie[];
+  releasesLoading: boolean;
+  releasesError: string | null;
 }
 
 export const useMovieStore = defineStore("movieStore", {
   state: (): StoreState => ({
     movie: null,
+    movieLoading: false,
+    movieError: null,
     movies: [],
-    currentPage: 0,
-    totalPages: 0,
-    isLoading: false,
-    error: null,
-    hasMore: true,
+    moviesLoading: false,
+    moviesError: null,
+    moviesCurrentPage: 0,
+    moviesTotalPages: 0,
+    moviesHasMore: true,
+    releases: [],
+    releasesLoading: false,
+    releasesError: null,
   }),
 
   getters: {
-    canLoadMore: (state) => state.hasMore && !state.isLoading,
+    canLoadMoreMovies: (state) => state.moviesHasMore && !state.moviesLoading,
   },
 
   actions: {
@@ -30,8 +40,8 @@ export const useMovieStore = defineStore("movieStore", {
       const { tmdbApiKey, tmdbApiUrl } = useRuntimeConfig().public;
 
       try {
-        this.isLoading = true;
-        this.error = null;
+        this.moviesLoading = true;
+        this.moviesError = null;
 
         const response = await $fetch<MovieResponse>(
           `${tmdbApiUrl}/movie/popular`,
@@ -52,21 +62,21 @@ export const useMovieStore = defineStore("movieStore", {
           this.movies = [...this.movies, ...response.results];
         }
 
-        this.currentPage = response.page;
-        this.totalPages = response.total_pages;
-        this.hasMore = response.page < response.total_pages;
+        this.moviesCurrentPage = response.page;
+        this.moviesTotalPages = response.total_pages;
+        this.moviesHasMore = response.page < response.total_pages;
       } catch (error) {
-        this.error =
+        this.moviesError =
           error instanceof Error ? error.message : "Failed to fetch movies";
         console.error("Error fetching movies:", error);
       } finally {
-        this.isLoading = false;
+        this.moviesLoading = false;
       }
     },
 
     async loadMoreMovies() {
-      if (this.canLoadMore) {
-        await this.fetchPopularMovies(this.currentPage + 1);
+      if (this.canLoadMoreMovies) {
+        await this.fetchPopularMovies(this.moviesCurrentPage + 1);
       }
     },
 
@@ -74,8 +84,8 @@ export const useMovieStore = defineStore("movieStore", {
       const { tmdbApiKey, tmdbApiUrl } = useRuntimeConfig().public;
 
       try {
-        this.isLoading = true;
-        this.error = null;
+        this.movieLoading = true;
+        this.movieError = null;
 
         const response = await $fetch<Movie>(`${tmdbApiUrl}/movie/${movieId}`, {
           params: {
@@ -88,9 +98,58 @@ export const useMovieStore = defineStore("movieStore", {
 
         this.movie = response;
       } catch (error) {
-        this.error =
+        this.movieError =
           error instanceof Error ? error.message : "Failed to fetch movie";
         console.error("Error fetching movie:", error);
+      } finally {
+        this.movieLoading = false;
+      }
+    },
+
+    async getReleasesInDateRange(startDate: Date, endDate: Date) {
+      const { tmdbApiKey, tmdbApiUrl } = useRuntimeConfig().public;
+
+      try {
+        this.releasesLoading = true;
+        this.releasesError = null;
+        this.releases = [];
+
+        let page = 1;
+        let totalPages = 1;
+
+        while (page <= totalPages) {
+          const response = await $fetch<MovieResponse>(
+            `${tmdbApiUrl}/discover/movie`,
+            {
+              params: {
+                language: "en-US",
+                sort_by: "release_date.desc",
+                "primary_release_date.gte": startDate
+                  .toISOString()
+                  .split("T")[0],
+                "primary_release_date.lte": endDate.toISOString().split("T")[0],
+                page: page,
+              },
+              headers: {
+                Authorization: `Bearer ${tmdbApiKey}`,
+              },
+            }
+          );
+
+          this.releases = [...this.releases, ...response.results];
+          totalPages = response.total_pages;
+          page++;
+          if (page > 40) {
+            // For performance reasons, limit the number of pages to fetch
+            break;
+          }
+        }
+      } catch (error) {
+        this.releasesError =
+          error instanceof Error ? error.message : "Failed to fetch releases";
+        console.error("Error fetching releases:", error);
+      } finally {
+        this.releasesLoading = false;
       }
     },
   },
