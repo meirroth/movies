@@ -13,6 +13,9 @@ interface StoreState {
   releases: Movie[];
   releasesLoading: boolean;
   releasesError: string | null;
+  relatedMovies: Movie[];
+  relatedMoviesLoading: boolean;
+  relatedMoviesError: string | null;
 }
 
 export const useMovieStore = defineStore("movieStore", {
@@ -29,6 +32,9 @@ export const useMovieStore = defineStore("movieStore", {
     releases: [],
     releasesLoading: false,
     releasesError: null,
+    relatedMovies: [],
+    relatedMoviesLoading: false,
+    relatedMoviesError: null,
   }),
 
   getters: {
@@ -150,6 +156,37 @@ export const useMovieStore = defineStore("movieStore", {
         console.error("Error fetching releases:", error);
       } finally {
         this.releasesLoading = false;
+      }
+    },
+
+    async fetchRelatedMovies(movieId: number) {
+      const { tmdbApiKey, tmdbApiUrl } = useRuntimeConfig().public;
+
+      try {
+        this.relatedMoviesLoading = true;
+        this.relatedMoviesError = null;
+
+        const response = await $fetch<MovieResponse>(
+          `${tmdbApiUrl}/movie/${movieId}/similar`,
+          {
+            params: {
+              language: "en-US",
+            },
+            headers: {
+              Authorization: `Bearer ${tmdbApiKey}`,
+            },
+          }
+        );
+
+        this.relatedMovies = response.results;
+      } catch (error) {
+        this.relatedMoviesError =
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch related movies";
+        console.error("Error fetching related movies:", error);
+      } finally {
+        this.relatedMoviesLoading = false;
       }
     },
   },

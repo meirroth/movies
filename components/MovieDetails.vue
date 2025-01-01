@@ -20,6 +20,7 @@
         </p>
       </div>
       <p class="mt-4 text-gray-300">{{ movie.overview }}</p>
+      <RelatedMovies class="mt-10" :movieId="movie.id" />
     </div>
   </div>
   <div v-else>Loading...</div>
