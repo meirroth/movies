@@ -1,6 +1,7 @@
 <template>
-  <div class="w-full max-w-2xl mx-auto p-4">
-    <canvas ref="chartCanvas"></canvas>
+  <div class="w-full max-w-2xl mx-auto p-4 h-96">
+    <USkeleton v-if="isLoading" class="w-full h-full" />
+    <canvas v-else ref="chartCanvas"></canvas>
   </div>
 </template>
 
@@ -31,6 +32,7 @@ Chart.register(
 const chartCanvas = ref<HTMLCanvasElement | null>(null);
 const store = useMovieStore();
 const releases = computed(() => store.releases);
+const isLoading = computed(() => store.releasesLoading);
 
 onMounted(async () => {
   if (!chartCanvas.value) return;
