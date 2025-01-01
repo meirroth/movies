@@ -8,7 +8,7 @@ const id = useRoute().params.id;
 const store = useMovieStore();
 const movie = computed(() => store.movie);
 
-await callOnce(async () => {
+await callOnce(id.toString(), async () => {
   await store.loadMovieDetails(Number(id));
 });
 
